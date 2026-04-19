@@ -7,6 +7,46 @@
     --text-muted: hsl(230, 10%, 70%);
     --border: hsla(230, 15%, 25%, 0.5);
     --glass: blur(10px);
+    --header-gradient: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+    --header-bg: hsla(230, 15%, 12%, 0.95);
+    --button-hover-bg: hsla(230, 15%, 20%, 0.9);
+    --char-count-bg: hsla(0, 0%, 0%, 0.3);
+    --canvas-bg: #000;
+    --shadow-card: none;
+}
+
+/* Refined Dark — muted, minimal, professional */
+html.theme-dark {
+    --primary: hsl(218, 50%, 60%);
+    --primary-hover: hsl(218, 50%, 66%);
+    --bg-dark: hsl(220, 13%, 9%);
+    --bg-card: hsla(220, 13%, 14%, 0.7);
+    --text: hsl(220, 10%, 93%);
+    --text-muted: hsl(220, 8%, 58%);
+    --border: hsla(220, 13%, 24%, 0.7);
+    --header-gradient: linear-gradient(135deg, #e6e9ef 0%, #94a3b8 100%);
+    --header-bg: hsla(220, 13%, 11%, 0.95);
+    --button-hover-bg: hsla(220, 13%, 18%, 0.9);
+    --char-count-bg: hsla(220, 13%, 0%, 0.35);
+    --canvas-bg: hsl(220, 13%, 5%);
+    --shadow-card: 0 1px 2px hsla(220, 13%, 0%, 0.3);
+}
+
+/* Refined Light — clean, airy, minimal */
+html.theme-light {
+    --primary: hsl(218, 65%, 48%);
+    --primary-hover: hsl(218, 65%, 42%);
+    --bg-dark: hsl(210, 20%, 98%);
+    --bg-card: hsla(0, 0%, 100%, 0.9);
+    --text: hsl(220, 20%, 18%);
+    --text-muted: hsl(220, 10%, 45%);
+    --border: hsla(220, 15%, 85%, 0.9);
+    --header-gradient: linear-gradient(135deg, hsl(220, 30%, 25%) 0%, hsl(218, 65%, 48%) 100%);
+    --header-bg: hsla(210, 20%, 96%, 0.95);
+    --button-hover-bg: hsla(220, 15%, 92%, 0.95);
+    --char-count-bg: hsla(220, 15%, 85%, 0.75);
+    --canvas-bg: hsl(210, 20%, 95%);
+    --shadow-card: 0 1px 3px hsla(220, 20%, 20%, 0.08);
 }
 
 body {
@@ -19,8 +59,8 @@ body {
 }
 
 header {
-    background: hsla(230, 15%, 12%, 0.95);
-    padding: 16px 20px;
+    background: var(--header-bg);
+    padding: 10px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -31,14 +71,27 @@ header {
     z-index: 100;
 }
 
+.header-title {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
 header h1 {
-    font-size: 18px;
+    font-size: 17px;
     margin: 0;
     font-weight: 700;
-    background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+    line-height: 1.1;
+    background: var(--header-gradient);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+}
+
+header #shortcutInfo {
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
 }
 
 header a {
@@ -54,27 +107,25 @@ header a:hover {
 }
 
 main {
-    padding: 20px;
-}
-
-#info {
-    margin-bottom: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-#shortcutInfo {
-    font-size: 11px;
-    color: var(--text-muted);
+    padding: 14px 20px 20px;
 }
 
 #copied {
-    font-size: 13px;
+    position: fixed;
+    top: 52px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
     color: #4ade80;
     font-weight: 600;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 6px;
     opacity: 0;
+    pointer-events: none;
     transition: opacity 0.3s;
+    z-index: 200;
 }
 
 #copied.fadeout {
@@ -87,7 +138,7 @@ main {
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--text-muted);
-    margin: 20px 0 10px;
+    margin: 14px 0 8px;
     display: flex;
     align-items: center;
 }
@@ -98,6 +149,10 @@ main {
     height: 1px;
     background: var(--border);
     margin-left: 10px;
+}
+
+.section-title.no-line::after {
+    display: none;
 }
 
 .grid {
@@ -143,7 +198,7 @@ main {
 }
 
 .secondary-button:hover {
-    background: hsla(230, 15%, 20%, 0.9);
+    background: var(--button-hover-bg);
 }
 
 textarea {
@@ -205,11 +260,12 @@ textarea {
 
 .preview-area-large {
     position: relative;
-    margin: 15px 0;
+    margin: 6px 0 15px;
     padding: 12px;
-    background: hsla(230, 15%, 5%, 0.4);
+    background: linear-gradient(180deg, hsla(235, 55%, 65%, 0.08), hsla(235, 55%, 65%, 0.02));
     border-radius: 8px;
-    border: 1px dashed var(--border);
+    border: 2px solid hsla(235, 55%, 65%, 0.35);
+    box-shadow: inset 0 1px 0 hsla(235, 55%, 65%, 0.08);
 }
 
 #share-preview {
@@ -260,7 +316,7 @@ textarea {
     max-width: 100%;
     overflow: hidden;
     border-radius: 8px;
-    background: #000;
+    background: var(--canvas-bg);
     display: flex;
     justify-content: center;
 }
@@ -277,7 +333,7 @@ textarea {
     /* Needs to be pushed left if resize handle is bottom-right */
     font-size: 10px;
     color: var(--text-muted);
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--char-count-bg);
     padding: 2px 6px;
     border-radius: 4px;
     pointer-events: none;

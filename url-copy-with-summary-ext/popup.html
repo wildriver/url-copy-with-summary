@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="utf-8">
+    <script src="theme.js"></script>
     <link rel="stylesheet" href="styles/popup.css">
     <script defer src="qrcode.js"></script>
     <script defer src="ai_service.js"></script>
@@ -12,27 +13,30 @@
 
 <body>
     <header>
-        <h1 data-i18n="appName">URL Copy with Summary</h1>
+        <div class="header-title">
+            <h1 data-i18n="appName">URL Copy with Summary</h1>
+            <div id="shortcutInfo">Ctrl+Shift+F</div>
+        </div>
         <a href="settings.html" target="_blank" data-i18n="settings">Settings</a>
     </header>
     <main>
-        <div id="info">
-            <div id="shortcutInfo">Ctrl+Shift+F</div>
-            <div id="copied" data-i18n="copied">Copied!</div>
-        </div>
-
-        <div class="notice-text" data-i18n="apiKeyNotice"
-            style="font-size: 11px; color: var(--text-muted); padding: 5px 15px; background: rgba(255, 255, 255, 0.05); border-radius: 4px; margin-bottom: 20px;">
-            Features marked with * require an API Key.
-        </div>
+        <div id="copied" data-i18n="copied">Copied!</div>
 
         <!-- 1. Unified Preview & Copy Section -->
         <section id="preview-section" class="preview-module">
-            <div class="section-title" data-i18n="copyPreview">Preview & Copy</div>
+            <div class="section-title no-line" style="gap: 8px;">
+                <span data-i18n="copyPreview">Preview & Copy</span>
+                <select id="popup-ai-provider" class="small-select" style="margin-left: auto;">
+                    <option value="groq">Groq</option>
+                    <option value="openrouter">OpenRouter</option>
+                </select>
+                <div id="api-quota-display" style="font-size: 10px; color: var(--primary); text-transform: none; letter-spacing: 0; white-space: nowrap;"></div>
+            </div>
             <div class="share-options">
                 <div class="checkbox-group">
                     <label class="checkbox-item"><input type="checkbox" id="opt-title" checked> <span
                             data-i18n="title">Title</span></label>
+                    <div class="option-group-label" data-i18n="aiWritingSection" style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 4px 0 2px; width: 100%;">AI Writing (API key required)</div>
                     <label class="checkbox-item"><input type="checkbox" id="opt-summary" class="ai-dependent" disabled>
                         <span data-i18n="summary">Summary</span></label>
                     <label class="checkbox-item"><input type="checkbox" id="opt-summary-x" class="ai-dependent"
@@ -40,11 +44,42 @@
                         <span data-i18n="summaryForX">Summary for X</span></label>
                     <label class="checkbox-item"><input type="checkbox" id="opt-hashtags" class="ai-dependent" disabled>
                         <span data-i18n="hashtags">Hashtags</span></label>
+                    <label class="checkbox-item"><input type="checkbox" id="opt-recommend" class="ai-dependent" disabled>
+                        <span data-i18n="recommend">Recommend</span></label>
+                </div>
+                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);">
                     <label class="checkbox-item"><input type="checkbox" id="opt-newline" checked> <span
                             data-i18n="useNewline">Use Newline</span></label>
                 </div>
             </div>
 
+            <!-- Recommendation area (shown when opt-recommend is checked) -->
+            <div id="recommend-area" style="display: none; margin-top: 8px;">
+                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                    <span style="font-size: 11px; color: var(--text-muted);" data-i18n="personaLabel">ペルソナ</span>
+                    <select id="recommend-persona" class="small-select" style="flex: 1; font-size: 11px; padding: 2px 4px; height: auto;">
+                        <option value="" data-i18n="personaDefault">デフォルト</option>
+                        <option value="teacher" data-i18n="personaTeacher">先生</option>
+                        <option value="student" data-i18n="personaStudent">学生</option>
+                        <option value="enthusiast" data-i18n="personaEnthusiast">驚き屋</option>
+                        <option value="researcher" data-i18n="personaResearcher">研究者</option>
+                        <option value="writer" data-i18n="personaWriter">ライター</option>
+                        <option value="friend" data-i18n="personaFriend">友達</option>
+                        <option value="businessman" data-i18n="personaBusinessman">ビジネスマン</option>
+                    </select>
+                    <button id="generate-recommend" class="primary-button secondary-button"
+                        style="padding: 3px 8px; font-size: 11px; height: auto;"
+                        data-i18n="generateRecommend">AI生成</button>
+                </div>
+                <textarea id="recommend-text" rows="2"
+                    style="width: 100%; box-sizing: border-box; background: var(--bg-dark); border: 1px solid var(--border); color: var(--text); border-radius: 6px; font-size: 12px; padding: 6px; resize: vertical;"
+                    data-i18n-placeholder="recommendPlaceholder"></textarea>
+            </div>
+
+            <div class="preview-label" style="display: flex; align-items: center; gap: 6px; margin-top: 14px; font-size: 11px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">
+                <span>📋</span>
+                <span data-i18n="clipboardPreview">Clipboard Preview</span>
+            </div>
             <div class="preview-area-large">
                 <textarea id="share-preview" readonly></textarea>
                 <div id="char-count" class="char-count">0</div>
@@ -56,49 +91,26 @@
             </button>
         </section>
 
-        <!-- 2. AI Summary Section -->
-        <section id="result-section" class="ai-section">
-            <div class="section-title">
-                <span data-i18n="summary">Summary</span>
-                <select id="popup-ai-provider" class="small-select">
-                    <option value="groq">Groq</option>
-                    <option value="openrouter">OpenRouter</option>
-                </select>
-                <div id="api-quota-display" style="font-size: 10px; color: var(--primary); margin-left: 5px;"></div>
+        <section id="eyecatch-section" class="ai-section">
+            <div class="section-title no-line" style="gap: 8px;">
+                <span data-i18n="eyecatch">Eye-catch</span>
                 <label class="checkbox-item" style="margin-left: auto; font-size: 11px; text-transform: none;">
-                    <input type="checkbox" id="opt-x-mode">
-                    <span data-i18n="optimizeForX">X Mode</span>
+                    <input type="checkbox" id="opt-eyecatch-ai" class="ai-dependent" disabled>
+                    <span data-i18n="eyeCatchAiAssist">AI Assist</span>
                 </label>
             </div>
-            <button id="summarize" class="primary-button ai-menu" style="width: 100%; margin-bottom: 10px;"
-                data-i18n="generateSummary">Generate AI Summary</button>
-            <div id="ai-result" style="display: none;">
-                <textarea id="summary-text" readonly></textarea>
-            </div>
-        </section>
-
-        <section id="eyecatch-section" class="ai-section">
-            <div class="section-title" style="display: flex; justify-content: space-between; align-items: center;">
-                <span data-i18n="eyecatch">Eye-catch</span>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <label class="checkbox-item" style="font-size: 11px; text-transform: none;">
-                        <input type="checkbox" id="opt-eyecatch-ai" class="ai-dependent" disabled>
-                        <span data-i18n="eyeCatchAiAssist">AI Assist*</span>
-                    </label>
-                    <div style="display: flex; align-items: center;">
-                        <span data-i18n="template" style="font-size: 10px; margin-right: 5px;">Template</span>
-                        <select id="eyecatch-template" class="small-select" style="margin-left: 0;">
-                            <option value="modern" data-i18n="templateModern">Modern Gradient</option>
-                            <option value="white" data-i18n="templateWhite">Classic White</option>
-                            <option value="navy" data-i18n="templateNavy">Navy Professional</option>
-                            <option value="darkpop" data-i18n="templateDarkPop">Dark Mode Pop</option>
-                            <option value="gold" data-i18n="templateGold">Elegant Gold</option>
-                        </select>
-                    </div>
-                </div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <span data-i18n="template" style="font-size: 11px; color: var(--text-muted); white-space: nowrap;">Template</span>
+                <select id="eyecatch-template" class="small-select" style="flex: 1;">
+                    <option value="modern" data-i18n="templateModern">Modern Gradient</option>
+                    <option value="white" data-i18n="templateWhite">Classic White</option>
+                    <option value="navy" data-i18n="templateNavy">Navy Professional</option>
+                    <option value="darkpop" data-i18n="templateDarkPop">Dark Mode Pop</option>
+                    <option value="gold" data-i18n="templateGold">Elegant Gold</option>
+                </select>
             </div>
             <button id="generate-image" class="primary-button ai-menu" style="width: 100%;"
-                data-i18n="generateEyecatch">Generate Eye-catch*</button>
+                data-i18n="generateEyecatch">Generate Eye-catch</button>
             <div id="eyecatch-preview" style="display: none; margin-top: 10px;">
                 <div class="canvas-container">
                     <canvas id="eyecatch-canvas"></canvas>

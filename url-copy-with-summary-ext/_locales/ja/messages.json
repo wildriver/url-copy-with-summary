@@ -20,11 +20,17 @@
     "generateEyecatch": {
         "message": "アイキャッチを生成"
     },
+    "eyeCatchAiAssist": {
+        "message": "AI補助"
+    },
     "summarizing": {
         "message": "要約中..."
     },
     "summary": {
         "message": "要約"
+    },
+    "aiWritingSection": {
+        "message": "AI文章作成（要API key）"
     },
     "eyecatch": {
         "message": "アイキャッチ"
@@ -57,7 +63,7 @@
         "message": "共有オプション"
     },
     "hashtags": {
-        "message": "ハッシュタグ*"
+        "message": "ハッシュタグ"
     },
     "slackPostSuccess": {
         "message": "Slackに投稿しました！"
@@ -79,6 +85,12 @@
     },
     "copyPreview": {
         "message": "プレビューとコピー"
+    },
+    "clipboardPreview": {
+        "message": "クリップボードに入る内容"
+    },
+    "remainingQuota": {
+        "message": "残り"
     },
     "templateDarkPop": {
         "message": "ダークポップ"
@@ -114,7 +126,7 @@
         "message": "Xモード (140文字)"
     },
     "summaryForX": {
-        "message": "要約 for X"
+        "message": "X向け要約"
     },
     "copyToClipboard": {
         "message": "クリップボードにコピー"
@@ -130,5 +142,59 @@
     },
     "templateNavy": {
         "message": "ネイビー・プロフェッショナル"
+    },
+    "recommend": {
+        "message": "お勧め文"
+    },
+    "recommendLabel": {
+        "message": "お勧め文"
+    },
+    "generateRecommend": {
+        "message": "AI生成"
+    },
+    "recommendPlaceholder": {
+        "message": "このページを人に勧めるひと言を入力（またはAI生成）"
+    },
+    "generatingRecommend": {
+        "message": "お勧め文を生成中..."
+    },
+    "personaLabel": {
+        "message": "ペルソナ"
+    },
+    "personaDefault": {
+        "message": "デフォルト"
+    },
+    "personaTeacher": {
+        "message": "先生"
+    },
+    "personaStudent": {
+        "message": "学生"
+    },
+    "personaEnthusiast": {
+        "message": "驚き屋"
+    },
+    "personaResearcher": {
+        "message": "研究者"
+    },
+    "personaWriter": {
+        "message": "ライター"
+    },
+    "personaFriend": {
+        "message": "友達"
+    },
+    "personaBusinessman": {
+        "message": "ビジネスマン"
+    },
+    "themeLabel": {
+        "message": "テーマ"
+    },
+    "themeDark": {
+        "message": "ダーク"
+    },
+    "themeLight": {
+        "message": "ライト"
+    },
+    "themeNeon": {
+        "message": "ネオン（従来）"
     }
 }

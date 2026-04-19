@@ -20,11 +20,17 @@
     "generateEyecatch": {
         "message": "Generate Eye-catch"
     },
+    "eyeCatchAiAssist": {
+        "message": "AI Assist"
+    },
     "summarizing": {
         "message": "Summarizing..."
     },
     "summary": {
         "message": "Summary"
+    },
+    "aiWritingSection": {
+        "message": "AI Writing (API key required)"
     },
     "eyecatch": {
         "message": "Eye-catch"
@@ -57,7 +63,7 @@
         "message": "Share Options"
     },
     "hashtags": {
-        "message": "Hashtags*"
+        "message": "Hashtags"
     },
     "slackPostSuccess": {
         "message": "Posted to Slack!"
@@ -79,6 +85,12 @@
     },
     "copyPreview": {
         "message": "Preview & Copy"
+    },
+    "clipboardPreview": {
+        "message": "Clipboard Preview"
+    },
+    "remainingQuota": {
+        "message": "Remaining"
     },
     "templateDarkPop": {
         "message": "Dark Mode Pop"
@@ -121,5 +133,59 @@
     },
     "templateNavy": {
         "message": "Navy Professional"
+    },
+    "recommend": {
+        "message": "Recommend"
+    },
+    "recommendLabel": {
+        "message": "Recommendation"
+    },
+    "generateRecommend": {
+        "message": "AI Generate"
+    },
+    "recommendPlaceholder": {
+        "message": "Write a personal recommendation (or use AI Generate)"
+    },
+    "generatingRecommend": {
+        "message": "Generating recommendation..."
+    },
+    "personaLabel": {
+        "message": "Persona"
+    },
+    "personaDefault": {
+        "message": "Default"
+    },
+    "personaTeacher": {
+        "message": "Teacher"
+    },
+    "personaStudent": {
+        "message": "Student"
+    },
+    "personaEnthusiast": {
+        "message": "Enthusiast"
+    },
+    "personaResearcher": {
+        "message": "Researcher"
+    },
+    "personaWriter": {
+        "message": "Writer"
+    },
+    "personaFriend": {
+        "message": "Friend"
+    },
+    "personaBusinessman": {
+        "message": "Businessman"
+    },
+    "themeLabel": {
+        "message": "Theme"
+    },
+    "themeDark": {
+        "message": "Dark"
+    },
+    "themeLight": {
+        "message": "Light"
+    },
+    "themeNeon": {
+        "message": "Neon (Original)"
     }
 }

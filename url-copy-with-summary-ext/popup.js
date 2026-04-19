@@ -7,6 +7,7 @@ let lastSummaryX = "";
 let lastKeywords = "";
 let isSummarizing = false;
 let isGeneratingKeywords = false;
+let isGeneratingRecommend = false;
 
 const copyText = async text => {
     try {
@@ -80,6 +81,17 @@ const generatePreviewText = (title, url) => {
     const isSummaryXChecked = document.getElementById('opt-summary-x').checked;
     const isTitleChecked = document.getElementById('opt-title').checked;
     const isHashtagsChecked = document.getElementById('opt-hashtags').checked;
+    const isRecommendChecked = document.getElementById('opt-recommend').checked;
+
+    // Recommendation goes first (personal intro)
+    if (isRecommendChecked) {
+        const recommendText = document.getElementById('recommend-text').value.trim();
+        if (recommendText) {
+            parts.push(recommendText);
+        } else if (isGeneratingRecommend) {
+            parts.push(`[${chrome.i18n.getMessage("generatingRecommend") || "お勧め文を生成中..."}]`);
+        }
+    }
 
     if (isSummaryChecked) {
         if (lastSummary) {
@@ -124,10 +136,10 @@ const updatePreview = (title, url) => {
     document.getElementById('char-count').textContent = text.length;
 }
 
-const updateVisibilityUI = (settings, isShareable) => {
+const updateVisibilityUI = async (settings, isShareable) => {
     const providerSelect = document.getElementById('popup-ai-provider');
 
-    // Filter providers based on API settings
+    // Filter providers based on API settings and availability
     const groqEnabled = !!settings.groqApiKey;
     const openrouterEnabled = !!settings.openrouterApiKey;
 
@@ -144,8 +156,7 @@ const updateVisibilityUI = (settings, isShareable) => {
     updateQuotaDisplay(providerSelect.value);
 
     const selectedProvider = providerSelect.value;
-    const apiKey = selectedProvider === 'groq' ? settings.groqApiKey : settings.openrouterApiKey;
-    const hasApiKey = !!apiKey;
+    const hasApiKey = !!(selectedProvider === 'groq' ? settings.groqApiKey : settings.openrouterApiKey);
     const showAi = settings.showAi !== false;
     const showQr = settings.showQr !== false;
 
@@ -168,8 +179,11 @@ const updateVisibilityUI = (settings, isShareable) => {
     const optHashtags = document.getElementById('opt-hashtags');
     optHashtags.disabled = !isShareable || !hasApiKey;
 
-    const summarizeBtn = document.getElementById('summarize');
-    summarizeBtn.disabled = !hasApiKey || !isShareable;
+    const optRecommend = document.getElementById('opt-recommend');
+    optRecommend.disabled = !isShareable || !hasApiKey;
+
+    const generateRecommendBtn = document.getElementById('generate-recommend');
+    if (generateRecommendBtn) generateRecommendBtn.disabled = !isShareable || !hasApiKey;
 
     const generateImageBtn = document.getElementById('generate-image');
     generateImageBtn.disabled = !isShareable;
@@ -190,20 +204,26 @@ const updateQuotaDisplay = async (provider) => {
     if (!quotaDisplay) return;
 
     const data = await chrome.storage.local.get(['groqRemaining', 'openrouterRemaining']);
+    const label = chrome.i18n.getMessage('remainingQuota') || 'Remaining';
 
     if (provider === 'groq' && data.groqRemaining !== undefined) {
-        quotaDisplay.textContent = `(Rem: ${data.groqRemaining})`;
+        quotaDisplay.textContent = `${label}: ${data.groqRemaining}`;
     } else if (provider === 'openrouter' && data.openrouterRemaining !== undefined) {
-        quotaDisplay.textContent = `(Rem: ${data.openrouterRemaining})`;
+        quotaDisplay.textContent = `${label}: ${data.openrouterRemaining}`;
     } else {
         quotaDisplay.textContent = '';
     }
+    quotaDisplay.title = 'API calls remaining until the quota resets';
 }
 
 const onInit = async () => {
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const msg = chrome.i18n.getMessage(el.getAttribute('data-i18n'));
         if (msg) el.textContent = msg;
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const msg = chrome.i18n.getMessage(el.getAttribute('data-i18n-placeholder'));
+        if (msg) el.placeholder = msg;
     });
 
     const data = await getUrlData();
@@ -232,10 +252,6 @@ const onInit = async () => {
     const triggerSummarize = async (targetXMode = false) => {
         if (isSummarizing) return;
 
-        const btn = document.getElementById("summarize");
-        const area = document.getElementById("summary-text");
-        const resDiv = document.getElementById("ai-result");
-
         const provider = providerSelect.value;
         const apiKey = provider === 'groq' ? settings.groqApiKey : settings.openrouterApiKey;
         const model = provider === 'groq' ? (settings.groqModel || 'llama-3.1-8b-instant') : (settings.openrouterModel || 'openai/gpt-4o-mini');
@@ -245,21 +261,14 @@ const onInit = async () => {
 
         if (targetXMode) {
             const urlLen = 23;
-            // Keywords length estimate
             const hashtagLen = lastKeywords ? lastKeywords.length : 30;
             const titleLen = document.getElementById('opt-title').checked ? data.title.length : 0;
             const separatorLen = 4;
             const fixedPartsLen = urlLen + hashtagLen + titleLen + separatorLen;
             maxLength = Math.max(10, 140 - fixedPartsLen - 2);
-            document.getElementById("opt-x-mode").checked = true;
-        } else {
-            document.getElementById("opt-x-mode").checked = false;
         }
 
         isSummarizing = true;
-        btn.disabled = true;
-        resDiv.style.display = "block";
-        area.value = chrome.i18n.getMessage("summarizing");
         updatePreview(data.title, data.url);
 
         try {
@@ -268,7 +277,6 @@ const onInit = async () => {
                 func: () => document.body.innerText,
             });
             const summary = await window.aiService.getSummary(results[0].result, provider, apiKey, model, language, maxLength);
-            area.value = summary;
 
             // Extract hashtags in parallel
             if (document.getElementById('opt-hashtags').checked) {
@@ -301,10 +309,9 @@ const onInit = async () => {
                 document.getElementById('opt-summary').checked = true;
             }
         } catch (e) {
-            area.value = "Error: " + e.message;
+            console.error("Summarize Error:", e);
         } finally {
             isSummarizing = false;
-            btn.disabled = false;
             updateVisibilityUI(settings, data.isShareable);
             updatePreview(data.title, data.url);
         }
@@ -342,6 +349,11 @@ const onInit = async () => {
         chrome.storage.sync.set({ aiProvider: providerSelect.value });
     };
 
+    // Recommendation textarea: update preview on input
+    document.getElementById('recommend-text').addEventListener('input', () => {
+        updatePreview(data.title, data.url);
+    });
+
     document.querySelectorAll('.checkbox-item input').forEach(input => {
         input.onchange = () => {
             if (input.id === 'opt-summary' && input.checked && !lastSummary) {
@@ -350,6 +362,10 @@ const onInit = async () => {
                 triggerSummarize(true);
             } else if (input.id === 'opt-hashtags' && input.checked && !lastKeywords) {
                 triggerKeywords();
+            } else if (input.id === 'opt-recommend') {
+                const area = document.getElementById('recommend-area');
+                area.style.display = input.checked ? 'block' : 'none';
+                updatePreview(data.title, data.url);
             } else {
                 updatePreview(data.title, data.url);
                 updateVisibilityUI(settings, data.isShareable);
@@ -357,14 +373,42 @@ const onInit = async () => {
         };
     });
 
+    // AI generate recommendation
+    document.getElementById('generate-recommend').onclick = async () => {
+        if (isGeneratingRecommend) return;
+        const btn = document.getElementById('generate-recommend');
+        const textarea = document.getElementById('recommend-text');
+        const provider = providerSelect.value;
+        const apiKey = provider === 'groq' ? settings.groqApiKey : settings.openrouterApiKey;
+        const model = provider === 'groq' ? (settings.groqModel || 'llama-3.1-8b-instant') : (settings.openrouterModel || 'openai/gpt-4o-mini');
+        const language = settings.summaryLanguage || 'Japanese';
+        const persona = document.getElementById('recommend-persona').value;
+
+        isGeneratingRecommend = true;
+        btn.disabled = true;
+        textarea.value = '';
+        updatePreview(data.title, data.url);
+
+        try {
+            const results = await chrome.scripting.executeScript({
+                target: { tabId: data.tabId },
+                func: () => document.body.innerText,
+            });
+            const recommendation = await window.aiService.getRecommendation(results[0].result, data.title, provider, apiKey, model, language, persona);
+            textarea.value = recommendation;
+            updateQuotaDisplay(provider);
+        } catch (e) {
+            console.error('Recommend Error:', e);
+        } finally {
+            isGeneratingRecommend = false;
+            btn.disabled = false;
+            updatePreview(data.title, data.url);
+        }
+    };
+
     document.getElementById('copy-clipboard').onclick = () => {
         const text = document.getElementById('share-preview').value;
         copyText(text);
-    };
-
-    document.getElementById("summarize").onclick = () => {
-        const xMode = document.getElementById("opt-x-mode").checked;
-        triggerSummarize(xMode);
     };
 
     // Eye-catch

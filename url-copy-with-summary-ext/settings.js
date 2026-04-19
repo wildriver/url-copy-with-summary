@@ -1,7 +1,18 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // Initialize i18n
     document.querySelectorAll('[data-i18n]').forEach(el => {
-        el.textContent = chrome.i18n.getMessage(el.getAttribute('data-i18n'));
+        const msg = chrome.i18n.getMessage(el.getAttribute('data-i18n'));
+        if (msg) el.textContent = msg;
+    });
+
+    document.getElementById('close-settings').addEventListener('click', () => {
+        chrome.tabs.getCurrent((tab) => {
+            if (tab && tab.id) {
+                chrome.tabs.remove(tab.id);
+            } else {
+                window.close();
+            }
+        });
     });
 
     const providerSelect = document.getElementById('ai-provider');
@@ -15,6 +26,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const status = document.getElementById('status');
     const toggleAi = document.getElementById('toggle-ai');
     const toggleQr = document.getElementById('toggle-qr');
+    const themeSelect = document.getElementById('theme-select');
+
+    // Theme: apply immediately on change (live preview), persist via setTheme
+    themeSelect.addEventListener('change', () => {
+        window.setTheme(themeSelect.value);
+    });
 
     // Load saved settings
     chrome.storage.sync.get([
@@ -22,9 +39,11 @@ document.addEventListener('DOMContentLoaded', () => {
         'groqApiKey', 'groqModel',
         'openrouterApiKey', 'openrouterModel',
         'summaryLanguage', 'summaryMaxLength',
-        'showAi', 'showQr'
+        'showAi', 'showQr', 'theme'
     ], (items) => {
-        if (items.aiProvider) providerSelect.value = items.aiProvider;
+        if (items.aiProvider) {
+            providerSelect.value = items.aiProvider;
+        }
         if (items.groqApiKey) groqApiKeyInput.value = items.groqApiKey;
         if (items.groqModel) groqModelInput.value = items.groqModel;
         if (items.openrouterApiKey) openRouterApiKeyInput.value = items.openrouterApiKey;
@@ -34,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         toggleAi.checked = items.showAi !== false;
         toggleQr.checked = items.showQr !== false;
+        themeSelect.value = items.theme || 'dark';
     });
 
     // Save settings

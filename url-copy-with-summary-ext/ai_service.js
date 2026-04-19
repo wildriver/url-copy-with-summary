@@ -6,6 +6,7 @@ const callAiWithFallback = async (prompt, provider, apiKey, model) => {
     ]);
 
     let primaryProvider = provider || settings.aiProvider || 'groq';
+
     let primaryKey = apiKey || (primaryProvider === 'groq' ? settings.groqApiKey : settings.openrouterApiKey);
     let primaryModel = model || (primaryProvider === 'groq' ? (settings.groqModel || 'llama-3.1-8b-instant') : (settings.openrouterModel || 'google/gemma-3-27b-it:free'));
 
@@ -102,4 +103,20 @@ const getKeywords = async (text, provider, apiKey, model, language = 'Japanese')
     return callAiWithFallback(prompt, provider, apiKey, model);
 };
 
-window.aiService = { getSummary, getCatchyTitle, getKeywords };
+const PERSONA_INSTRUCTIONS = {
+    teacher:    'You are writing as a teacher. Use an educational, clear, and encouraging tone that explains why this content is worth reading.',
+    student:    'You are writing as a student. Use a fresh, relatable, and genuine tone as if sharing something you personally found interesting.',
+    enthusiast: 'You are writing as an enthusiast who loves viral content. Use an excited, punchy, buzzworthy tone with energy and exclamations.',
+    researcher: 'You are writing as a researcher. Use an objective, analytical, and precise tone highlighting the informational value.',
+    writer:     'You are writing as a literary writer. Use expressive, carefully crafted language with a distinctive voice.',
+    friend:     'You are writing as a close friend. Use casual, warm, conversational language as if texting someone you know well.',
+    businessman:'You are writing as a business professional. Focus on practical value, efficiency, and business relevance.',
+};
+
+const getRecommendation = async (text, title, provider, apiKey, model, language = 'Japanese', persona = '') => {
+    const personaInstruction = PERSONA_INSTRUCTIONS[persona] || 'Write as yourself with a genuine, personal tone.';
+    const prompt = `${personaInstruction} Based on the page title and content below, write a short recommendation message in ${language} that explains why someone should read this page. THE MESSAGE MUST BE UNDER 100 CHARACTERS. DO NOT include introductory text, quotes, or the URL. Just the recommendation message itself.\n\nTitle: ${title}\nContent: ${text.substring(0, 3000)}`;
+    return callAiWithFallback(prompt, provider, apiKey, model);
+};
+
+window.aiService = { getSummary, getCatchyTitle, getKeywords, getRecommendation };

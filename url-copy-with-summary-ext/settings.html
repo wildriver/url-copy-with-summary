@@ -4,6 +4,7 @@
 <head>
     <meta charset="utf-8">
     <title>__MSG_settings__</title>
+    <script src="theme.js"></script>
     <link rel="stylesheet" href="styles/popup.css">
     <style>
         body {
@@ -75,6 +76,7 @@
 <body>
     <header>
         <h1 data-i18n="appName">URL Copy with Summary</h1>
+        <button id="close-settings" style="background: none; border: 1px solid var(--border); color: var(--text-muted); border-radius: 6px; padding: 4px 12px; font-size: 12px; cursor: pointer;">✕ Close</button>
     </header>
     <main class="grid-settings">
         <!-- AI Provider Configuration -->
@@ -146,6 +148,18 @@
                         data-i18n="showAiFeatures">Show AI Features</span></label>
                 <label class="checkbox-item"><input type="checkbox" id="toggle-qr" checked> <span
                         data-i18n="showQrCode">Show QR Code</span></label>
+            </div>
+        </section>
+
+        <!-- Theme -->
+        <section class="card">
+            <label data-i18n="themeLabel">Theme</label>
+            <div class="field">
+                <select id="theme-select">
+                    <option value="dark" data-i18n="themeDark">Dark</option>
+                    <option value="light" data-i18n="themeLight">Light</option>
+                    <option value="neon" data-i18n="themeNeon">Neon</option>
+                </select>
             </div>
         </section>
 
