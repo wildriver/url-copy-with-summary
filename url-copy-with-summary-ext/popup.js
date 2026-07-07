@@ -24,19 +24,80 @@ const copyText = async text => {
     }
 }
 
+// Exact parameter names to strip (case-insensitive).
+const TRACKING_PARAMS = new Set([
+    // Facebook / Meta
+    'fbclid', 'fb_action_ids', 'fb_action_types', 'fb_source', 'fb_ref',
+    // Google (Ads / Analytics / DoubleClick)
+    'gclid', 'gclsrc', 'dclid', 'gbraid', 'wbraid', 'gad_source', 'gad', '_ga',
+    // Microsoft / Bing
+    'msclkid',
+    // Yandex
+    'yclid', 'ysclid', '_openstat',
+    // Twitter / X
+    'twclid',
+    // TikTok
+    'ttclid',
+    // Instagram
+    'igshid', 'igsh',
+    // Mailchimp
+    'mc_cid', 'mc_eid',
+    // HubSpot
+    '_hsenc', '_hsmi', '__hssc', '__hstc', '__hsfp', 'hsctatracking',
+    // Marketo
+    'mkt_tok',
+    // Vero
+    'vero_conv', 'vero_id',
+    // Adobe / Oracle Eloqua
+    's_cid', 'elqtrack', 'elqtrackid',
+    // Twitter share / generic referrers
+    'ref_src', 'ref_url',
+    // Google Translate proxy params
+    '_x_tr_sl', '_x_tr_tl', '_x_tr_hl', '_x_tr_pto',
+]);
+
+// Prefix / suffix patterns for tracking parameter families.
+const TRACKING_PATTERNS = [
+    /^utm_/,           // Google Analytics UTM tags
+    /^pk_/, /^mtm_/, /^piwik_/, // Matomo / Piwik
+    /^ga_/,
+    /^mc_/,            // Mailchimp
+    /^hsa_/, /^_hs/,   // HubSpot
+    /^oly_/,           // Omeda
+    /^vero_/,          // Vero
+    /^mkt_/,           // Marketo
+    /^_openstat/,      // Yandex/OpenStat
+    /clid$/,           // *clid style click IDs (fbclid, gclid, yclid, twclid, ttclid, ...)
+];
+
+function isTrackingParam(name) {
+    const lower = name.toLowerCase();
+    if (TRACKING_PARAMS.has(lower)) return true;
+    return TRACKING_PATTERNS.some(re => re.test(lower));
+}
+
 function cleanUrl(url) {
     try {
         const urlObj = new URL(url);
 
-        // Remove common tracking parameters
-        const trackingParams = ['fbclid', 'gclid', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', '_x_tr_sl', '_x_tr_tl', '_x_tr_hl', '_x_tr_pto'];
-        trackingParams.forEach(param => urlObj.searchParams.delete(param));
-
-        // Amazon specific cleanup logic
+        // Amazon specific cleanup logic — collapse to canonical /dp/<ASIN>
         if (urlObj.hostname.includes('amazon.')) {
             const match = urlObj.pathname.match(/\/dp\/([A-Z0-9]{10})/);
             if (match) {
                 return `${urlObj.origin}/dp/${match[1]}`;
+            }
+        }
+
+        // Host-specific share trackers whose param name is too generic to strip globally.
+        const host = urlObj.hostname.replace(/^www\./, '');
+        if (/(^|\.)(youtube\.com|youtu\.be|spotify\.com)$/.test(host)) {
+            urlObj.searchParams.delete('si');
+        }
+
+        // Remove any tracking parameter matching the known list or patterns.
+        for (const key of [...urlObj.searchParams.keys()]) {
+            if (isTrackingParam(key)) {
+                urlObj.searchParams.delete(key);
             }
         }
 
@@ -67,7 +128,7 @@ const getUrlData = async () => {
     if (!tab) return null;
 
     return {
-        url: extractAmazonUrl(tab.url),
+        url: cleanUrl(tab.url),
         title: tab.title,
         rawUrl: tab.url,
         tabId: tab.id,
