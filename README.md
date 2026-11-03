@@ -57,3 +57,6 @@ Special thanks to the original authors for providing the foundation for this ext
 
 ---
 *Enhanced by URL Copy with Summary.*
+
+
+[![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/rkwytk)
